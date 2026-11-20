@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:ghiblifilms/features/films/ui/view_models/film_list_view_model.dart';
 import 'package:ghiblifilms/features/films/ui/widgets/error_view.dart';
+import 'package:ghiblifilms/features/films/ui/widgets/film_card.dart';
 
 class FilmListView extends StatefulWidget {
   final FilmListViewModel viewModel;
@@ -22,28 +23,42 @@ class _FilmListViewState extends State<FilmListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ghibli Films'),
-        centerTitle: true,
-        backgroundColor: Colors.brown[300],
-        foregroundColor: Colors.white,
-      ),
-      body: ListenableBuilder(
-        listenable: widget.viewModel,
-        builder: (context, _) {
-          final viewModel = widget.viewModel;
+      appBar: AppBar(title: const Text('Ghibli Films'), centerTitle: true),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: TextField(
+              onChanged: widget.viewModel.setQuery,
+              decoration: InputDecoration(
+                hintText: 'Search by title or director',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListenableBuilder(
+              listenable: widget.viewModel,
+              builder: (context, _) {
+                final viewModel = widget.viewModel;
 
-          return switch (viewModel.status) {
-            FilmListStatus.loading => const Center(
-              child: SpinKitFadingCircle(color: Colors.teal, size: 50),
+                return switch (viewModel.status) {
+                  FilmListStatus.loading => const Center(
+                    child: SpinKitFadingCircle(color: Colors.teal, size: 50),
+                  ),
+                  FilmListStatus.error => ErrorView(
+                    message: viewModel.errorMessage,
+                    onRetry: viewModel.loadFilms,
+                  ),
+                  FilmListStatus.success => _buildFilmList(viewModel),
+                };
+              },
             ),
-            FilmListStatus.error => ErrorView(
-              message: viewModel.errorMessage,
-              onRetry: viewModel.loadFilms,
-            ),
-            FilmListStatus.success => _buildFilmList(viewModel),
-          };
-        },
+          ),
+        ],
       ),
     );
   }
@@ -65,9 +80,12 @@ class _FilmListViewState extends State<FilmListView> {
       itemCount: films.length,
       itemBuilder: (context, index) {
         final film = films[index];
-        return ListTile(
-          title: Text(film.title),
-          subtitle: Text('${film.releaseYear} - ${film.director}'),
+        return FilmCard(
+          film: film,
+          watched: viewModel.isWatched(film.id),
+          onTap: () {
+            // Task 9 adds navigation here.
+          },
         );
       },
     );
