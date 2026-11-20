@@ -23,7 +23,26 @@ class _FilmListViewState extends State<FilmListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ghibli Films'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Ghibli Films'),
+        centerTitle: true,
+        actions: [
+          ListenableBuilder(
+            listenable: widget.viewModel,
+            builder: (context, _) {
+              final viewModel = widget.viewModel;
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Center(
+                  child: Text(
+                    '${viewModel.watchedCount}/${viewModel.totalCount}',
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -84,7 +103,7 @@ class _FilmListViewState extends State<FilmListView> {
           film: film,
           watched: viewModel.isWatched(film.id),
           onTap: () {
-            // Task 9 adds navigation here.
+            Navigator.pushNamed(context, '/detail', arguments: film);
           },
         );
       },
